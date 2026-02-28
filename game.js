@@ -6,20 +6,38 @@
 // ==================== POKI SDK INTEGRATION ====================
 let pokiSDKReady = false;
 let gameReady = false;
+let pokiSDKTimeout = null;
 
-// Initialize Poki SDK
-PokiSDK.init().then(() => {
-    console.log("Poki SDK initialized");
-    pokiSDKReady = true;
-    checkReady();
-}).catch(() => {
-    console.log("Poki SDK failed, continuing without ads");
-    pokiSDKReady = false;
-    checkReady();
-});
+// Initialize Poki SDK with timeout
+function initPokiSDK() {
+    // Set timeout: if SDK doesn't respond in 3 seconds, continue anyway
+    pokiSDKTimeout = setTimeout(() => {
+        console.log("Poki SDK timeout, continuing without ads");
+        pokiSDKReady = false;
+        checkReady();
+    }, 3000);
+    
+    PokiSDK.init().then(() => {
+        clearTimeout(pokiSDKTimeout);
+        console.log("Poki SDK initialized");
+        pokiSDKReady = true;
+        checkReady();
+    }).catch((err) => {
+        clearTimeout(pokiSDKTimeout);
+        console.log("Poki SDK failed:", err);
+        pokiSDKReady = false;
+        checkReady();
+    });
+    
+    try {
+        PokiSDK.gameLoadingStart();
+    } catch(e) {
+        console.log("gameLoadingStart failed:", e);
+    }
+}
 
-// Game loading start
-PokiSDK.gameLoadingStart();
+// Start initialization
+initPokiSDK();
 
 // Update loading progress
 function updateLoadingProgress(progress) {
@@ -31,7 +49,15 @@ function updateLoadingProgress(progress) {
     if (loadingText) {
         loadingText.textContent = 'Loading... ' + Math.floor(progress * 100) + '%';
     }
-    PokiSDK.gameLoadingProgress(progress);
+    
+    // Only call Poki SDK if it's ready
+    if (pokiSDKReady) {
+        try {
+            PokiSDK.gameLoadingProgress(progress);
+        } catch(e) {
+            console.log("gameLoadingProgress failed:", e);
+        }
+    }
 }
 
 // Check if game is ready to start
@@ -43,10 +69,27 @@ function checkReady() {
 
 // Start game function
 function startGame() {
-    PokiSDK.gameLoadingFinished();
-    document.getElementById('loading-screen').classList.add('hidden');
-    document.getElementById('mute-btn').classList.add('visible');
-    game.start();
+    try {
+        if (pokiSDKReady) {
+            PokiSDK.gameLoadingFinished();
+        }
+    } catch(e) {
+        console.log("gameLoadingFinished failed:", e);
+    }
+    
+    const loadingScreen = document.getElementById('loading-screen');
+    const muteBtn = document.getElementById('mute-btn');
+    
+    if (loadingScreen) {
+        loadingScreen.classList.add('hidden');
+    }
+    if (muteBtn) {
+        muteBtn.classList.add('visible');
+    }
+    
+    if (game) {
+        game.start();
+    }
 }
 
 // ==================== GAME CONSTANTS ====================
@@ -82,6 +125,7 @@ class JewelMatch {
         this.maxCombo = 0;
         this.gameOver = false;
         this.gameWon = false;
+        this.isPaused = false;
         
         // Selection
         this.selectedGem = null;
@@ -402,7 +446,18 @@ class JewelMatch {
     
     async showAdBreak() {
         // Poki commercial break - shown between levels or game over
-        await PokiSDK.commercialBreak();
+        if (!pokiSDKReady) return;
+        
+        try {
+            // Pause game before ad
+            this.isPaused = true;
+            await PokiSDK.commercialBreak();
+        } catch(e) {
+            console.log("commercialBreak failed:", e);
+        } finally {
+            // Resume game after ad
+            this.isPaused = false;
+        }
     }
     
     nextLevel() {
