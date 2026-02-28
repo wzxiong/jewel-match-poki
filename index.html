@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Jewel Match - Puzzle Game</title>
+    <meta name="description" content="A fun and addictive match-3 puzzle game. Match colorful jewels to score points!">
+    
+    <!-- Poki SDK -->
+    <script src="https://sdk.poki.com/sdk.js"></script>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+            touch-action: none;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        
+        #game-container {
+            position: relative;
+            width: 100%;
+            max-width: 600px;
+            aspect-ratio: 3/4;
+        }
+        
+        #game-canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        
+        #loading-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            border-radius: 12px;
+            z-index: 100;
+            transition: opacity 0.5s;
+        }
+        
+        #loading-screen.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+        
+        .loading-title {
+            font-size: 36px;
+            font-weight: bold;
+            color: white;
+            margin-bottom: 30px;
+            text-shadow: 0 4px 8px rgba(0,0,0,0.3);
+        }
+        
+        .loading-bar {
+            width: 200px;
+            height: 8px;
+            background: rgba(255,255,255,0.3);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        
+        .loading-progress {
+            width: 0%;
+            height: 100%;
+            background: #2ecc71;
+            border-radius: 4px;
+            transition: width 0.3s;
+        }
+        
+        .loading-text {
+            margin-top: 15px;
+            color: rgba(255,255,255,0.8);
+            font-size: 14px;
+        }
+        
+        #mute-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            width: 40px;
+            height: 40px;
+            background: rgba(255,255,255,0.9);
+            border: none;
+            border-radius: 50%;
+            font-size: 20px;
+            cursor: pointer;
+            z-index: 50;
+            display: none;
+        }
+        
+        #mute-btn.visible {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div id="game-container">
+        <!-- 加载画面 -->
+        <div id="loading-screen">
+            <div class="loading-title">💎 Jewel Match</div>
+            <div class="loading-bar">
+                <div class="loading-progress" id="loading-progress"></div>
+            </div>
+            <div class="loading-text" id="loading-text">Loading...</div>
+        </div>
+        
+        <!-- 静音按钮 -->
+        <button id="mute-btn">🔊</button>
+        
+        <!-- 游戏画布 -->
+        <canvas id="game-canvas"></canvas>
+    </div>
+    
+    <script src="game.js"></script>
+</body>
+</html>
