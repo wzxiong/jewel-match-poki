@@ -140,7 +140,10 @@ class JewelMatch {
         
         // Audio state
         this.muted = false;
-        document.getElementById('mute-btn').addEventListener('click', () => this.toggleMute());
+        const muteBtn = document.getElementById('mute-btn');
+        if (muteBtn) {
+            muteBtn.addEventListener('click', () => this.toggleMute());
+        }
         
         // Initialize grid
         this.initGrid();
